@@ -43,9 +43,14 @@ func (r *SQL[E]) Find(ctx context.Context, ids []uint) ([]E, error) {
 }
 
 func (r *SQL[E]) Update(ctx context.Context, id uint, entity E) (E, error) {
-	if err := r.db.WithContext(ctx).Model(new(E)).Where("id = ?", id).Updates(&entity).Error; err != nil {
+	q := r.db.WithContext(ctx).Model(new(E)).Where("id = ?", id).Updates(&entity)
+	if err := q.Error; err != nil {
 		var zero E
 		return zero, err
+	}
+	if q.RowsAffected == 0 {
+		var zero E
+		return zero, gorm.ErrRecordNotFound
 	}
 	return entity, nil
 }
@@ -55,8 +60,8 @@ func (r *SQL[E]) UpdateBulk(ctx context.Context, ids []uint, entity E) ([]E, err
 		return nil, err
 	}
 
-	var result []E
-	if err := r.db.WithContext(ctx).Model(new(E)).Where("id IN (?)", ids).Find(&result).Error; err != nil {
+	result, err := r.Find(ctx, ids)
+	if err != nil {
 		return nil, err
 	}
 
@@ -84,7 +89,7 @@ func (r *SQL[E]) RemoveBulk(ctx context.Context, ids []uint) ([]E, error) {
 		return nil, err
 	}
 
-	if err := r.db.WithContext(ctx).Model(new(E)).Where("id = ?", ids).Delete(&result).Error; err != nil {
+	if err := r.db.WithContext(ctx).Model(new(E)).Where("id IN (?)", ids).Delete(&result).Error; err != nil {
 		return nil, err
 	}
 

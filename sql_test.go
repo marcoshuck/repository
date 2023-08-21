@@ -87,20 +87,77 @@ func (s *SQLTestSuite) TestFind() {
 	s.Assert().Empty(list)
 }
 
-// 	// Create creates an entity in a persistence layer.
-//	Create(ctx context.Context, entity E) (E, error)
-//	// CreateBulk creates a set of entities in a persistence layer.
-//	CreateBulk(ctx context.Context, entities []E) ([]E, error)
-//	// Get returns an entity from a persistence layer identified by its ID. It returns an error if the entity doesn't exist.
-//	Get(ctx context.Context, id uint) (E, error)
-//	// Find returns a set of entities from a persistence layer identified by their ID. It returns
-//	// an empty slice if no records were found.
-//	Find(ctx context.Context, ids []uint) ([]E, error)
-//	// Update updates with the values of entity the entity identified by id.
-//	Update(ctx context.Context, id uint, entity E) (E, error)
-//	// UpdateBulk updates with the values of entity all the elements identified by the slice of ids.
-//	UpdateBulk(ctx context.Context, ids []uint, entity E) ([]E, error)
-//	// Remove removes the given id from a persistence layer.
-//	Remove(ctx context.Context, id uint) (E, error)
-//	// RemoveBulk removes a set of elements from a persistence layer.
-//	RemoveBulk(ctx context.Context, ids []uint) ([]E, error)
+func (s *SQLTestSuite) TestGet() {
+	s.createMockData()
+	result, err := s.repository.Get(context.Background(), 1)
+
+	s.Assert().NoError(err)
+	s.Assert().Equal("Marcos", result.FirstName)
+
+	result, err = s.repository.Get(context.Background(), 55)
+	s.Assert().Error(err)
+	s.Assert().ErrorIs(err, gorm.ErrRecordNotFound)
+	s.Assert().Zero(result)
+}
+
+func (s *SQLTestSuite) TestCreate() {
+	s.createMockData()
+	created, err := s.repository.Create(context.Background(), Test{
+		FirstName: "Another",
+		LastName:  "Test",
+	})
+	s.Assert().NoError(err)
+
+	result, err := s.repository.Get(context.Background(), created.ID)
+	s.Assert().NoError(err)
+
+	s.Assert().Equal(created.FirstName, result.FirstName)
+}
+
+func (s *SQLTestSuite) TestUpdate() {
+	s.createMockData()
+
+	before, err := s.repository.Get(context.Background(), 2)
+	s.Assert().NoError(err)
+	s.Assert().Equal("Andres", before.FirstName)
+
+	update := before
+	update.FirstName = "Marcos"
+	updated, err := s.repository.Update(context.Background(), 2, update)
+
+	s.Assert().Equal(update.ID, updated.ID)
+	s.Assert().Equal(update.FirstName, updated.FirstName)
+
+	after, err := s.repository.Get(context.Background(), 2)
+	s.Assert().NoError(err)
+	s.Assert().Equal(before.ID, after.ID)
+	s.Assert().NotEqual(before.FirstName, after.FirstName)
+
+	updated, err = s.repository.Update(context.Background(), 100, update)
+	s.Assert().Error(err)
+	s.Assert().ErrorIs(err, gorm.ErrRecordNotFound)
+	s.Assert().Zero(updated)
+}
+
+func (s *SQLTestSuite) TestRemove() {
+	s.createMockData()
+
+	before, err := s.repository.Get(context.Background(), 2)
+	s.Assert().NoError(err)
+	s.Assert().False(before.DeletedAt.Valid)
+
+	result, err := s.repository.Remove(context.Background(), 2)
+	s.Assert().NoError(err)
+	s.Assert().True(result.DeletedAt.Valid)
+
+	after, err := s.repository.Get(context.Background(), 2)
+	s.Assert().Error(err)
+	s.Assert().Zero(after)
+	s.Assert().ErrorIs(err, gorm.ErrRecordNotFound)
+}
+
+func (s *SQLTestSuite) TestCreateBulk() {}
+
+func (s *SQLTestSuite) TestUpdateBulk() {}
+
+func (s *SQLTestSuite) TestRemoveBulk() {}
