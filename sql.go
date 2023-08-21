@@ -96,6 +96,9 @@ func (r *SQL[E]) RemoveBulk(ctx context.Context, ids []uint) ([]E, error) {
 	return result, nil
 }
 
-func NewRepositorySQL[E any]() Repository[E] {
-	return &SQL[E]{}
+// NewRepositorySQL initializes a new Repository instance using gorm.
+func NewRepositorySQL[E any](db *gorm.DB) Repository[E] {
+	return &SQL[E]{
+		db: db,
+	}
 }
