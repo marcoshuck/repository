@@ -77,6 +77,14 @@ func (s *SQLTestSuite) TestFind() {
 	list, err := s.repository.Find(context.Background(), []uint{1, 2, 3})
 	s.Assert().NoError(err)
 	s.Assert().Len(list, 3)
+
+	list, err = s.repository.Find(context.Background(), []uint{1, 2})
+	s.Assert().NoError(err)
+	s.Assert().Len(list, 2)
+
+	list, err = s.repository.Find(context.Background(), []uint{55, 12})
+	s.Assert().NoError(err)
+	s.Assert().Empty(list)
 }
 
 // 	// Create creates an entity in a persistence layer.

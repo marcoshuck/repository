@@ -12,8 +12,8 @@ type Repository[E any] interface {
 	CreateBulk(ctx context.Context, entities []E) ([]E, error)
 	// Get returns an entity from a persistence layer identified by its ID. It returns an error if the entity doesn't exist.
 	Get(ctx context.Context, id uint) (E, error)
-	// Find returns a set of entities from a persistence layer identified by their ID. It returns
-	// an empty slice if no records were found.
+	// Find returns a set of entities from a persistence layer identified by their IDs. It returns an empty slice if no
+	// records were found.
 	Find(ctx context.Context, ids []uint) ([]E, error)
 	// Update updates with the values of entity the entity identified by id.
 	Update(ctx context.Context, id uint, entity E) (E, error)

@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// SQL implements Repository for GORM.
 type SQL[E any] struct {
 	db *gorm.DB
 }
