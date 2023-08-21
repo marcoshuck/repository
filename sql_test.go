@@ -124,7 +124,7 @@ func (s *SQLTestSuite) TestUpdate() {
 	update := before
 	update.FirstName = "Marcos"
 	updated, err := s.repository.Update(context.Background(), 2, update)
-
+	s.Assert().NoError(err)
 	s.Assert().Equal(update.ID, updated.ID)
 	s.Assert().Equal(update.FirstName, updated.FirstName)
 
